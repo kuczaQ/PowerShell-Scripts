@@ -1,11 +1,11 @@
-#Requires -RunAsAdministrator
+# Requires -RunAsAdministrator
 
 ################
 #    PARAMS    #
 ################
 Param (
     [Parameter(Mandatory=$true)]
-    [ValidateSet("enable","disable")]
+    [ValidateSet("enable", "disable", "check")]
     $action,
 
     [ValidateNotNull()]
@@ -42,7 +42,7 @@ function confirm {
         $answer = Read-Host;
         if ($answer -eq 'd') {Write-Host (getServiceDesc $serviceName)
             (Get-WmiObject win32_service | Where-Object {$_.Name -eq $serviceName}).Description;
-            Write-Host `n$msg;
+            Write-Host "y/n/d?";
         } else {
             break;
         }
@@ -59,7 +59,7 @@ function getServiceName {
         $serviceDisplayName
     )
 
-    return (Get-Service | Where-Object{ $_.DisplayName -eq $serviceDisplayName}).Name;
+    return (getService $serviceDisplayName).Name;
 }
 
 function disableService {
@@ -71,7 +71,7 @@ function disableService {
     )
 
     Write-Host "Disabling $serviceName";
-    Set-Service $serviceName -StartupType Disabled;
+    #Set-Service $serviceName -StartupType Disabled;
 }
 
 function enableService {
@@ -83,10 +83,10 @@ function enableService {
     )
 
     Write-Host "Enabling $serviceName (Manual)";
-    Set-Service $serviceName -StartupType Manual;
+    #Set-Service $serviceName -StartupType Manual;
 }
 
-function disableOrEnable {
+function disableOrEnableService {
     param (
         [Parameter(Mandatory=$true)]
         [ValidateNotNull()]
@@ -112,27 +112,71 @@ function getServiceDesc {
     return (Get-WmiObject win32_service | Where-Object {$_.Name -eq $serviceName}).Description;
 }
 
+function getService {
+    param (
+        [Parameter(Mandatory=$true)]
+        [ValidateNotNull()]
+        [string]
+        $serviceDisplayName
+    )
+    
+    return (Get-Service | Where-Object{ $_.DisplayName -eq $serviceDisplayName});
+}
+
+function disableOrEnable {
+    param (
+        [Parameter(Mandatory=$true)]
+        [array]
+        $services
+    )
+    
+    ForEach ($service in $services) {
+        $displayName = ($service.displayName);
+        $name = getServiceName $displayName;
+
+        if (!$name) {
+            Write-Host "Service $displayName was not found! Skipping...";
+            continue;
+        }
+
+        if ($auto) {
+            disableOrEnableService $name;
+        } else {
+            $ok = (confirm -serviceDisplayName $displayName -serviceName $name);
+
+            if ($ok -eq $true) {
+                disableOrEnableService $name;
+            } else {
+                Write-Host "Skipping...";
+            }
+        }
+    }
+}
+
+function checkServices {
+    param (
+        [Parameter(Mandatory=$true)]
+        [array]
+        $services
+    )
+
+    $output = @();
+
+    ForEach ($service in $services) {
+        $displayName = ($service.displayName);
+        $output += (getService -serviceDisplayName $displayName);
+    }
+
+    $output | Format-Table -Property StartType,Status,Name,DisplayName -AutoSize;
+}
+
 ##############
 #    MAIN    #
 ##############
 $services = import-csv "services.csv" -header displayName -delimiter ','
 
-ForEach ($service in $services) {
-    $displayName = ($service.displayName);
-    $name = getServiceName $displayName;
-
-    if (!$name) {
-        Write-Host "Service $displayName was not found! Skipping...";
-        continue;
-    }
-
-    if ($auto) {
-        disableOrEnable $name;
-    } else {
-        $ok = (confirm -serviceDisplayName $displayName -serviceName $name);
-
-        if ($ok -eq $true) {
-            disableOrEnable $name;
-        }
-    }
+if ($action -eq 'check') {
+    checkServices -services $services;
+} else {
+    disableOrEnable -services $services;
 }
