@@ -1,6 +1,6 @@
 # Enable or disable Windows services
 
-You need to speficy a list in csv format of services that you want to manage or use one of the default ones. Use _Service Display Names_ ++only++ in this list. In doubt look at the defaults. 
+You need to speficy a list in csv format of services that you want to manage or use one of the default ones. Use _Service Display Names_ ONLY in this list. In doubt look at the defaults. 
 
 ## Syntax:
 
