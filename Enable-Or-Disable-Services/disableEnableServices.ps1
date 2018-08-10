@@ -1,4 +1,4 @@
-# Requires -RunAsAdministrator
+#Requires -RunAsAdministrator
 
 ################
 #    PARAMS    #
@@ -71,7 +71,7 @@ function disableService {
     )
 
     Write-Host "Disabling $serviceName";
-    #Set-Service $serviceName -StartupType Disabled;
+    Set-Service $serviceName -StartupType Disabled;
 }
 
 function enableService {
@@ -83,7 +83,7 @@ function enableService {
     )
 
     Write-Host "Enabling $serviceName (Manual)";
-    #Set-Service $serviceName -StartupType Manual;
+    Set-Service $serviceName -StartupType Manual;
 }
 
 function disableOrEnableService {
