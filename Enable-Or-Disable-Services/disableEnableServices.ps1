@@ -9,7 +9,12 @@ Param (
     $action,
 
     [ValidateNotNull()]
-    $auto=$false
+    [bool]
+    $auto=$false,
+
+    [ValidateNotNull()]
+    [string]
+    $preset="services.csv"
 )
 
 ###################
@@ -173,7 +178,7 @@ function checkServices {
 ##############
 #    MAIN    #
 ##############
-$services = import-csv "services.csv" -header displayName -delimiter ','
+$services = import-csv $preset -header displayName -delimiter ','
 
 if ($action -eq 'check') {
     checkServices -services $services;
