@@ -22,6 +22,6 @@ $ disableEnableServices.ps1 -action {enable | disable | check} [-auto {$true | $
 
     * $true: like, automatic, you know
 
-* -preset [default: services.csv]
+* -preset [default:./services.csv]
 
     * path to the csv file
